@@ -1,0 +1,17 @@
+model {
+  system test 'Test' {
+    component api 'API' {
+      technology 'REST'
+    }
+  }
+
+  api -> api {
+    title 'process'
+    technology 'gRPC'
+    description '''
+    ### DTO
+    - bad dto format without braces
+    - AnotherBad { field1, field2
+    '''
+  }
+}

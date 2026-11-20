@@ -1,0 +1,27 @@
+model {
+  actor user 'Test User'
+
+  system test_system 'Test System' {
+    component api 'API' {
+      technology 'REST'
+    }
+  }
+
+  user -> test_system {
+    title 'uses'
+    technology 'HTTPS'
+    description '''
+    ### Description
+    - User interacts with the system
+    '''
+  }
+
+  test_system -> api {
+    title 'internal call'
+    technology 'gRPC'
+    description '''
+    ### Internal API
+    - CallMethod()
+    '''
+  }
+}

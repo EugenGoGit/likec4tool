@@ -1,0 +1,16 @@
+model {
+  actor user 'Test User'
+
+  system test 'Test' {
+    component api 'API' {
+      technology 'REST'
+    }
+  }
+
+  user -> test 'short form'
+
+  test -> api {
+    title 'call'
+    technology 'gRPC'
+  }
+}

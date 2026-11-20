@@ -1,0 +1,1270 @@
+model {
+  actor viewer 'YouTube Viewer'
+  actor creator 'Content Creator'
+
+  youtube = system 'YouTube' 'Video sharing platform'
+  {
+    component web_app 'Web App' {
+      technology 'React'
+      style { shape browser }
+    }
+    component mobile_ios 'iOS App' {
+      technology 'Swift'
+      style { shape mobile }
+    }
+    component mobile_android 'Android App' {
+      technology 'Kotlin'
+      style { shape mobile }
+    }
+    component tv_app 'TV App' {
+      technology 'Android TV'
+    }
+
+    component api_gateway 'API Gateway' {
+      technology 'gRPC / REST'
+    }
+    component user_service 'User Service' {
+      technology 'Java'
+    }
+    component video_service 'Video Service' {
+      technology 'Go'
+    }
+    component processing_service 'Video Processing' {
+      technology 'Python / FFmpeg'
+    }
+    component recommendation_service 'Recommendation Engine' {
+      technology 'Python / TensorFlow'
+    }
+    component comment_service 'Comment Service' {
+      technology 'Java'
+    }
+    component analytics_service 'Analytics Service' {
+      technology 'Java'
+    }
+    component live_streaming_service 'Live Streaming' {
+      technology 'HLS / DASH'
+    }
+    component monetization_service 'Monetization Service' {
+      technology 'Java'
+    }
+    component billing_service 'Billing Service' {
+      technology 'Java'
+    }
+
+    video_queue = queue {
+      technology 'Kafka'
+    }
+    events_queue = queue {
+      technology 'Kafka'
+    }
+    notifications_queue = queue {
+      technology 'Kafka'
+    }
+
+    video_storage = storage {
+      title 'Video Storage'
+      technology 'Google Cloud Storage'
+    }
+    metadata_db = storage {
+      title 'Metadata DB'
+      technology 'Spanner'
+    }
+    cache = storage {
+      title 'Cache Layer'
+      technology 'Memcached / Redis'
+    }
+    search_index = storage {
+      title 'Search Index'
+      technology 'Apache Solr'
+    }
+    recommendations_db = storage {
+      title 'Recommendations DB'
+      technology 'Bigtable'
+    }
+    billing_db = storage {
+      title 'Billing DB'
+      technology 'Spanner'
+    }
+  }
+
+  cdn_service = system {
+    title 'CDN (Google Cloud CDN)'
+    description 'Content delivery network'
+  }
+  oauth_service = system {
+    title 'Google OAuth'
+    description 'Authentication service'
+  }
+  ad_system_service = system {
+    title 'Ad Manager'
+    description 'Ad serving platform'
+  }
+  email_service_service = system {
+    title 'Email Service'
+    description 'Transactional emails'
+  }
+  stripe_service = system {
+    title 'Stripe'
+    description 'Payment processing platform'
+  }
+  yandex_money_service = system {
+    title 'Yandex.Money'
+    description 'Payment provider for Russian market'
+  }
+
+  viewer -> web_app {
+    title 'watches videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Streaming
+    - userId
+    - videoId
+    '''
+  }
+  viewer -> mobile_ios {
+    title 'watches videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Streaming
+    - userId
+    - videoId
+    '''
+  }
+  viewer -> mobile_android {
+    title 'watches videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Streaming
+    - userId
+    - videoId
+    '''
+  }
+  viewer -> tv_app {
+    title 'watches videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Streaming
+    - userId
+    - videoId
+    '''
+  }
+
+  creator -> mobile_ios {
+    title 'uploads videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Upload
+    - userId
+    - videoFile
+    '''
+  }
+  creator -> mobile_android {
+    title 'uploads videos'
+    technology 'HTTPS'
+    description '''
+    ### Video Upload
+    - userId
+    - videoFile
+    '''
+  }
+
+  web_app -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - POST /videos — upload
+    - GET /videos/{id} — get video
+    - GET /recommendations — recommendations
+    - GET /search — search
+    '''
+  }
+  mobile_ios -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - POST /videos — upload
+    - GET /videos/{id} — get video
+    - GET /recommendations — recommendations
+    '''
+  }
+  mobile_android -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - POST /videos — upload
+    - GET /videos/{id} — get video
+    - GET /recommendations — recommendations
+    '''
+  }
+  tv_app -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /videos/{id}/stream — stream video
+    - GET /recommendations — recommendations
+    '''
+  }
+
+  api_gateway -> user_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - AuthenticateUser, GetUserProfile, UpdateProfile, ListSubscriptions, CreateSubscription, CancelSubscription
+
+    ### DTO
+    - UserRequest { userId, email }
+    - UserResponse { id, name, avatar, subscribers }
+    - AuthToken { accessToken, refreshToken }
+    - SubscriptionRecord { id, planId, status, currentPeriodStart, currentPeriodEnd }
+    '''
+  }
+  api_gateway -> video_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - UploadVideo, GetVideo, ListVideos, DeleteVideo, GetVideoStats
+
+    ### DTO
+    - VideoRequest { title, description, categoryId, privacyStatus }
+    - VideoResponse { id, title, thumbnailUrl, duration, viewCount }
+    - UploadSession { sessionId, uploadUrl, expiresIn }
+    '''
+  }
+  api_gateway -> recommendation_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - GetRecommendations, GetRelatedVideos, GetTrending
+
+    ### DTO
+    - RecommendationRequest { userId, videoId, sessionId, count }
+    - RecommendationResponse { videos: [VideoSummary], nextPageToken }
+    - VideoSummary { id, title, thumbnailUrl, channelName }
+    '''
+  }
+  api_gateway -> comment_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - AddComment, GetComments, LikeComment, DeleteComment, ReplyComment
+
+    ### DTO
+    - CommentRequest { videoId, parentId, text }
+    - CommentResponse { id, text, author, likes, replies: [CommentResponse], createdAt }
+    '''
+  }
+  api_gateway -> analytics_service {
+    title 'gRPC / Async'
+    technology 'gRPC + Kafka'
+    description '''
+    ### gRPC API
+    - RecordViewEvent (async via Kafka), GetChannelStats, GetVideoAnalytics
+
+    ### DTO
+    - ViewEvent { userId, videoId, timestamp, sessionId, position, deviceType }
+    - AnalyticsResponse { views, watchTime, retention, demographics }
+    '''
+  }
+  api_gateway -> live_streaming_service {
+    title 'gRPC / HLS'
+    technology 'gRPC + HLS / DASH'
+    description '''
+    ### gRPC API
+    - CreateStream, StartStream, StopStream, GetStreamStatus, GetStreamUrl
+
+    ### DTO
+    - StreamRequest { videoId, title, chatEnabled }
+    - StreamResponse { streamUrl, playbackUrl, streamKey, status }
+    '''
+  }
+  api_gateway -> monetization_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - MonetizeVideo, GetAdSlots, GetRevenue, CheckEligibility
+
+    ### DTO
+    - MonetizationRequest { videoId, channelId }
+    - AdSlot { adType, duration, position }
+    - RevenueResponse { earnings, impressions, ctr }
+    '''
+  }
+
+  video_service -> processing_service {
+    title 'Internal RPC'
+    technology 'gRPC'
+    description '''
+    ### Triggers transcoding pipeline
+
+    ### DTO
+    - ProcessingRequest { videoId, storagePath, formats: [HLS, DASH, MP4], resolutions: [1080p, 720p, 480p, 360p] }
+    '''
+  }
+  processing_service -> video_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Publishes transcoding job
+
+    ### DTO
+    - TranscodeJob { jobId, videoId, sourcePath, targetFormats, priority }
+    '''
+  }
+  video_queue -> processing_service {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Consumes transcoding job
+
+    ### DTO
+    - TranscodeJob { jobId, videoId, sourcePath, targetFormats, priority }
+    '''
+  }
+
+  processing_service -> video_storage {
+    title 'Google Cloud Storage API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Uploads transcoded segments and manifests
+
+    ### DTO
+    - UploadRequest { bucket, objectKey, contentType, metadata }
+    '''
+  }
+  processing_service -> cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches thumbnails and video metadata
+
+    ### DTO
+    - CacheEntry { key: video:{id}:thumbnail, value: bytes, ttl: 3600 }
+    '''
+  }
+
+  video_storage -> cdn_service {
+    title 'Cloud CDN Pull'
+    technology 'HTTP / HTTPS'
+    description '''
+    ### CDN caches video segments (TS/M4S) and manifests (M3U8/MPD)
+
+    ### DTO
+    - CacheObject { url, etag, cacheControl: max-age=86400 }
+    '''
+  }
+
+  user_service -> oauth_service {
+    title 'OAuth 2.0 / OIDC'
+    technology 'HTTPS / JWT'
+    description '''
+    ### Validates Google ID tokens
+
+    ### DTO
+    - TokenRequest { idToken, grantType: authorization_code }
+    - TokenResponse { accessToken, refreshToken, idToken, expiresIn }
+    '''
+  }
+  user_service -> metadata_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Reads/writes user profiles, subscriptions, watch history
+
+    ### DTO
+    - UserRecord { id, email, name, avatarUrl, subscribers, subscriptions: [channelId] }
+    - WatchHistoryEntry { userId, videoId, watchedAt, position }
+    '''
+  }
+
+  video_service -> metadata_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Reads/writes video metadata, channels, playlists
+
+    ### DTO
+    - VideoRecord { id, title, description, categoryId, privacyStatus, channelId, createdAt, duration }
+    - ChannelRecord { id, name, description, avatarUrl, createdAt }
+    - PlaylistRecord { id, title, videoIds: [videoId] }
+    '''
+  }
+
+  recommendation_service -> recommendations_db {
+    title 'Bigtable Client'
+    technology 'gRPC / Bigtable Protocol'
+    description '''
+    ### Reads user preferences and video feature vectors
+
+    ### DTO
+    - UserVector { userId, features: [category, channel, duration], weights }
+    - VideoFeature { videoId, categoryId, tags, duration, channelAuthority }
+    '''
+  }
+  recommendation_service -> events_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Consumes watch events for model training
+
+    ### DTO
+    - WatchEvent { userId, videoId, eventType: view|like|dislike|click, timestamp, sessionDuration }
+    '''
+  }
+  events_queue -> analytics_service {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Consumes events for analytics aggregation
+
+    ### DTO
+    - WatchEvent { userId, videoId, eventType, timestamp, sessionDuration, deviceType, country }
+    '''
+  }
+
+  comment_service -> metadata_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Reads/writes comments and replies
+
+    ### DTO
+    - CommentRecord { id, videoId, authorId, text, parentId?, likes, createdAt }
+    - CommentListResponse { comments: [CommentRecord], nextPageToken }
+    '''
+  }
+
+  analytics_service -> metadata_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Writes aggregated analytics: views, watch time, retention
+
+    ### DTO
+    - StatsAggregation { videoId, views, uniqueViews, watchTimeHours, avgViewDuration, likes, dislikes, comments }
+    '''
+  }
+
+  monetization_service -> ad_system_service {
+    title 'Ad Selection API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Requests ads for ad slots (pre-roll, mid-roll, overlay)
+
+    ### DTO
+    - AdRequest { videoId, channelId, adSlotType: pre/mid/post, userId?, context: [title, categoryId] }
+    - AdResponse { adId, creativeUrl, duration, clickUrl, targetingInfo }
+    '''
+  }
+  monetization_service -> metadata_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Reads channel monetization status and revenue data
+
+    ### DTO
+    - ChannelMonetization { channelId, enabled, partnerId, revenueShare, totalEarnings }
+    '''
+  }
+
+  notifications_queue -> email_service_service {
+    title 'Kafka'
+    technology 'Kafka + JSON'
+    description '''
+    ### Publishes notification events for email delivery
+
+    ### DTO
+    - NotificationEvent { userId, type: new_video|reply|mention, source: [channelId, videoId, commentId], subject, body }
+    '''
+  }
+
+  viewer -> cdn_service {
+    title 'HTTP Live Streaming'
+    technology 'HLS (M3U8) / DASH (MPD)'
+    description '''
+    ### Streams video segments (.ts/.m4s) with adaptive bitrate
+
+    ### DTO
+    - Manifest { #EXTM3U, #EXT-X-VERSION:6, #EXT-X-STREAM-INF: BANDWIDTH=4000000, RESOLUTION=1920x1080 }
+    - Segment { url: video/{id}/segment_{n}.ts, duration: 6s }
+    '''
+  }
+  creator -> ad_system_service {
+    title 'Ad Manager API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Configures ad settings and retrieves revenue reports
+
+    ### DTO
+    - AdSettings { channelId, enabled, adTypes: [pre, mid, overlay], maxAdDuration }
+    - RevenueReport { period, earnings, impressions, rpm }
+    '''
+  }
+
+  web_app -> cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches user sessions and frequently accessed data
+
+    ### DTO
+    - Session { sessionId, userId, token, expiresAt }
+    - CachedResponse { key: video:{id}, value: VideoResponse, ttl: 300 }
+    '''
+  }
+  web_app -> search_index {
+    title 'Search API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Searches videos by title, description, tags
+
+    ### DTO
+    - SearchRequest { query, sortBy: relevance|date|views, page, pageSize }
+    - SearchResponse { results: [VideoSummary], totalHits, nextPageToken }
+    '''
+  }
+  mobile_ios -> search_index {
+    title 'Search API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Searches videos by title, description, tags
+
+    ### DTO
+    - SearchRequest { query, sortBy: relevance|date|views, page, pageSize }
+    - SearchResponse { results: [VideoSummary], totalHits, nextPageToken }
+    '''
+  }
+  mobile_android -> search_index {
+    title 'Search API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Searches videos by title, description, tags
+
+    ### DTO
+    - SearchRequest { query, sortBy: relevance|date|views, page, pageSize }
+    - SearchResponse { results: [VideoSummary], totalHits, nextPageToken }
+    '''
+  }
+
+  api_gateway -> billing_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - CreateSubscription, CancelSubscription, GetSubscription, ListSubscriptions
+    - CreateInvoice, GetInvoice, ListInvoices
+    - ProcessPayment, RefundPayment
+    - GetBillingInfo, UpdatePaymentMethod
+
+    ### DTO
+    - SubscriptionRequest { userId, planId, paymentMethodId }
+    - SubscriptionResponse { id, planId, status, currentPeriodStart, currentPeriodEnd, cancelAtPeriodEnd }
+    - InvoiceRequest { userId, subscriptionId, amount, currency }
+    - InvoiceResponse { id, subscriptionId, amount, currency, status, dueDate, paidAt }
+    - PaymentRequest { subscriptionId, amount, currency, paymentMethodId }
+    - PaymentResponse { id, status, transactionId, provider }
+    - Plan { id, name, price, interval, features: [string] }
+    '''
+  }
+  billing_service -> billing_db {
+    title 'Spanner Client'
+    technology 'gRPC / Spanner Protocol'
+    description '''
+    ### Reads/writes billing data: subscriptions, invoices, payment methods
+
+    ### DTO
+    - SubscriptionRecord { id, userId, planId, status, currentPeriodStart, currentPeriodEnd, cancelAtPeriodEnd, createdAt }
+    - InvoiceRecord { id, subscriptionId, amount, currency, status, dueDate, paidAt, pdfUrl }
+    - PaymentMethodRecord { id, userId, type: card|sbp|wallet, lastFour, expiryDate, isDefault }
+    - PlanRecord { id, name, price, interval: month|year, features: [string] }
+    '''
+  }
+  billing_service -> stripe_service {
+    title 'Stripe API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Creates charges, manages subscriptions, handles webhooks
+
+    ### DTO
+    - ChargeRequest { amount, currency, source: token, customer_id, description }
+    - ChargeResponse { id, status, amount, currency, receipt_url }
+    - SubscriptionCreate { customer_id, items: [{price_id, quantity}], trial_period_days }
+    - WebhookEvent { type: invoice.paid|customer.subscription.updated, data }
+    '''
+  }
+  billing_service -> yandex_money_service {
+    title 'Yandex.Money API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Processes payments via Yandex.Money wallet and SBP
+
+    ### DTO
+    - PaymentRequest { amount, currency: RUB, description, merchantId, orderId }
+    - PaymentResponse { status, transactionId, redirectUrl, confirmationUrl }
+    - RefundRequest { transactionId, amount }
+    - RefundResponse { status, refundId, refundedAmount }
+    '''
+  }
+  monetization_service -> billing_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### Revenue sharing: calculates creator payouts from ad revenue
+
+    ### gRPC API
+    - CalculateRevenueShare { videoId, channelId, revenue }
+    - CreatePayout { channelId, amount, currency }
+    - GetPayoutStatus { payoutId }
+    - GetCreatorEarnings { channelId, periodStart, periodEnd }
+
+    ### DTO
+    - RevenueShareRequest { videoId, channelId, adRevenue, currency }
+    - RevenueShareResponse { creatorShare, platformShare, rate: 0.55 }
+    - PayoutRequest { channelId, amount, currency, method: bank_transfer|wallet }
+    - PayoutResponse { id, status, estimatedArrival }
+    - EarningsResponse { totalEarnings, pendingEarnings, paidEarnings, breakdown: [VideoEarnings] }
+    '''
+  }
+  viewer -> billing_service {
+    title 'Subscription Management'
+    technology 'HTTPS / REST'
+    description '''
+    ### Manages YouTube Premium subscriptions
+
+    ### REST API Endpoints
+    - POST /billing/subscriptions — subscribe to plan
+    - GET /billing/subscriptions/{id} — get subscription status
+    - PUT /billing/subscriptions/{id} — update/cancel subscription
+    - GET /billing/invoices — list invoices
+    - POST /billing/payment-methods — add payment method
+    - DELETE /billing/payment-methods/{id} — remove payment method
+
+    ### Plans
+    - Premium Monthly: 199 RUB/mo
+    - Premium Yearly: 1490 RUB/yr
+    - Family Plan: 299 RUB/mo (up to 6 members)
+    - Student Plan: 99 RUB/mo (verified)
+    '''
+  }
+  creator -> billing_service {
+    title 'Creator Payouts'
+    technology 'HTTPS / REST'
+    description '''
+    ### Withdraws earnings, manages payout methods
+
+    ### REST API Endpoints
+    - GET /billing/earnings — get earnings summary
+    - POST /billing/payouts — request withdrawal
+    - GET /billing/payouts/{id} — get payout status
+    - GET /billing/payout-methods — list payout methods
+    - POST /billing/payout-methods — add bank account/wallet
+
+    ### Payout Methods
+    - Bank Transfer (SWIFT/SEPA)
+    - Yandex.Money Wallet
+    - PayPal
+    '''
+  }
+}
+
+views {
+  view index {
+    title 'YouTube Service Architecture'
+    description 'High-level architecture of the YouTube video sharing platform'
+
+    include viewer, creator, youtube
+
+  }
+
+  view internal {
+    title 'YouTube Internal Components'
+    description 'Detailed internal architecture of YouTube services'
+
+    include youtube.*
+
+  }
+
+  dynamic view video-upload-flow {
+    title 'Video Upload Flow'
+    description 'Sequence diagram of video upload and processing'
+
+    creator -> web_app {
+      title 'File Upload'
+      technology 'HTTPS / Multipart'
+      notes '''
+      ### DTO: FileUpload
+      - file: video.mp4
+      - title
+      - description
+      - categoryId
+      '''
+    }
+    web_app -> api_gateway {
+      title 'POST /upload'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Initiate Upload Session
+      **Request:**
+      - title
+      - description
+      - categoryId
+      - privacyStatus
+
+      **Response:**
+      - sessionId
+      - uploadUrl
+      - expiresIn
+      '''
+    }
+    api_gateway -> user_service {
+      title 'AuthenticateUser'
+      technology 'gRPC'
+      notes '''
+      ### Verify Authentication
+      **Request:**
+      - token: Bearer <JWT>
+
+      **Response:**
+      - userId
+      - email
+      - role
+      '''
+    }
+    user_service -> oauth_service {
+      title 'Validate Token'
+      technology 'HTTPS / JWT'
+      notes '''
+      ### Validate Google ID Token
+      **Request:**
+      - idToken
+
+      **Response:**
+      - valid: true
+      - userId
+      - email
+      '''
+    }
+    oauth_service -> user_service {
+      title 'token valid'
+    }
+    user_service -> api_gateway {
+      title 'authenticated'
+    }
+    api_gateway -> video_service {
+      title 'CreateUploadSession'
+      technology 'gRPC'
+      notes '''
+      ### Create Upload Session
+      **Request:**
+      - userId
+      - title
+      - fileSize
+
+      **Response:**
+      - sessionId
+      - uploadUrl
+      - maxFileSize
+      '''
+    }
+    video_service -> metadata_db {
+      title 'Insert VideoRecord'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Store Video Metadata
+      - id
+      - title
+      - description
+      - categoryId
+      - privacyStatus
+      - channelId
+      - status: processing
+      - createdAt
+      '''
+    }
+    video_service -> video_queue {
+      title 'Publish TranscodeJob'
+      technology 'Kafka'
+      notes '''
+      ### Enqueue for Transcoding
+      - jobId
+      - videoId
+      - sourcePath
+      - targetFormats: [HLS, DASH, MP4]
+      - resolutions: [1080p, 720p, 480p]
+      '''
+    }
+    processing_service -> video_queue {
+      title 'dequeue task'
+    }
+    processing_service -> video_storage {
+      title 'Upload Video Segments'
+      technology 'GCS API'
+      notes '''
+      ### Store Transcoded Files
+      - bucket: youtube-videos
+      - objectKey: {videoId}/manifest.m3u8
+      - contentType: application/vnd.apple.mpegurl
+      '''
+    }
+    processing_service -> processing_service {
+      title 'transcode variants'
+    }
+    processing_service -> cache {
+      title 'Set Thumbnail'
+      technology 'Redis'
+      notes '''
+      ### Cache Thumbnail
+      - key: video:{id}:thumbnail
+      - value: bytes (JPEG)
+      - ttl: 86400
+      '''
+    }
+    processing_service -> search_index {
+      title 'Index Video'
+      technology 'HTTPS / REST'
+      notes '''
+      ### Index for Search
+      - id: videoId
+      - title
+      - description
+      - tags
+      - channelId
+      - duration
+      - createdAt
+      '''
+    }
+    processing_service -> events_queue {
+      title 'Publish ProcessingComplete'
+      technology 'Kafka'
+      notes '''
+      ### Processing Complete Event
+      - videoId
+      - formats: [HLS, DASH]
+      - durations: {1080p: 120s, 720p: 118s}
+      - thumbnailUrl
+      '''
+    }
+    analytics_service -> events_queue {
+      title 'consume event'
+    }
+    web_app -> viewer {
+      title 'Video Ready'
+      technology 'WebSocket / SSE'
+      notes '''
+      ### Video Ready Notification
+      - type: video_ready
+      - videoId
+      - title
+      - channelName
+      '''
+    }
+  }
+
+  dynamic view recommendation-flow {
+    title 'Recommendation Flow'
+    description 'How YouTube recommends videos to viewers'
+
+    viewer -> web_app {
+      title 'Browse Homepage'
+      technology 'HTTPS'
+      notes '''
+      ### Page Request
+      - userId
+      - sessionId
+      - deviceType
+      - location: {country, region}
+      '''
+    }
+    web_app -> api_gateway {
+      title 'GET /recommendations'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Request Recommendations
+      **Request:**
+      - userId
+      - videoId?
+      - count: 20
+      - sessionId
+
+      **Response:**
+      - videos: [VideoSummary]
+      - refreshInterval: 300s
+      '''
+    }
+    api_gateway -> recommendation_service {
+      title 'GetRecommendations'
+      technology 'gRPC'
+      notes '''
+      ### Fetch Recommendations
+      **Request:**
+      - userId
+      - videoId?
+      - count
+      - context: [watchHistory, currentVideo]
+
+      **Response:**
+      - videos: [RankedVideo]
+      - explainReasons: true
+      '''
+    }
+    recommendation_service -> recommendations_db {
+      title 'Load User Vector'
+      technology 'Bigtable'
+      notes '''
+      ### User Preference Embeddings
+      - userId
+      - embeddings: float[768]
+      - categories: {tech: 0.8, gaming: 0.6}
+      - watchFrequency: {hourly: [12, 8, 15, ...]}
+      '''
+    }
+    recommendation_service -> recommendations_db {
+      title 'Candidate Generation'
+      technology 'Bigtable'
+      notes '''
+      ### ANN Search Results
+      **Query:**
+      - queryVector: float[768]
+      - topK: 100
+
+      **Result:**
+      - videoId
+      - similarity: 0.95
+      - channelName
+      '''
+    }
+    recommendation_service -> metadata_db {
+      title 'Fetch Video Details'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Enrich with Metadata
+      **Request:**
+      - videoIds: [uuid]
+
+      **Response:**
+      - id
+      - title
+      - thumbnailUrl
+      - duration
+      - viewCount
+      - channelName
+      - channelAvatar
+      '''
+    }
+    recommendation_service -> events_queue {
+      title 'Log Impression'
+      technology 'Kafka'
+      notes '''
+      ### Impression Log Event
+      - userId
+      - videoIds: [uuid]
+      - positions: [1, 2, 3]
+      - timestamp
+      - sessionId
+      - algorithm: two-tower-v2
+      '''
+    }
+    analytics_service -> events_queue {
+      title 'Track Engagement'
+      technology 'Kafka'
+      notes '''
+      ### Engagement Event
+      - userId
+      - videoId
+      - eventType: click|skip|watch
+      - position
+      - duration: 45s
+      - source: recommendations
+      '''
+    }
+    recommendation_service -> web_app {
+      title 'Return Recommendations'
+      technology 'gRPC'
+      notes '''
+      ### Recommendations Response
+      - videos: [VideoSummary]
+        - id
+        - title
+        - thumbnailUrl
+        - channelName
+        - viewCount
+        - duration
+      - nextPageToken
+      - expiresIn: 300s
+      '''
+    }
+    web_app -> viewer {
+      title 'Display Recommendations'
+      technology 'React / HTML'
+      notes '''
+      ### Recommendation Card
+      - videoId
+      - thumbnailUrl
+      - title
+      - channelName
+      - duration
+      - viewCount
+      - reason: "Because you watched..."
+      '''
+    }
+  }
+
+  dynamic view subscription-flow {
+    title 'Subscription Flow'
+    description 'How a viewer subscribes to YouTube Premium'
+
+    viewer -> web_app {
+      title 'Select Plan'
+      technology 'HTTPS'
+      notes '''
+      ### Choose Subscription Plan
+      - planId: premium_monthly
+      - currency: RUB
+      - userId
+      '''
+    }
+    web_app -> api_gateway {
+      title 'POST /billing/subscriptions'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Create Subscription Request
+      **Request:**
+      - userId
+      - planId: premium_monthly
+      - currency: RUB
+      - paymentMethodId: pm_card_****1234
+
+      **Response:**
+      - subscriptionId: sub_123
+      - amount: 199
+      - currency: RUB
+      - nextBillingDate: 2024-02-15
+      '''
+    }
+    api_gateway -> billing_service {
+      title 'CreateSubscription'
+      technology 'gRPC'
+      notes '''
+      ### Create Subscription
+      **Request:**
+      - userId
+      - planId
+      - paymentMethodId
+
+      **Response:**
+      - subscriptionId
+      - status: active
+      - currentPeriodStart
+      - currentPeriodEnd
+      '''
+    }
+    billing_service -> billing_db {
+      title 'Insert SubscriptionRecord'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Store Subscription
+      - id: sub_123
+      - userId: user_456
+      - planId: premium_monthly
+      - status: active
+      - currentPeriodStart: 2024-01-15
+      - currentPeriodEnd: 2024-02-15
+      - cancelAtPeriodEnd: false
+      '''
+    }
+    billing_service -> stripe_service {
+      title 'Create Subscription on Stripe'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Create Stripe Subscription
+      **Request:**
+      - customer_id: cus_456
+      - price_id: price_premium_monthly
+      - payment_method: pm_card_****1234
+      - metadata: {subscription_id: sub_123}
+
+      **Response:**
+      - subscription_id: sub_stripe_789
+      - status: active
+      - current_period_end: 1708012800
+      '''
+    }
+    stripe_service -> billing_service {
+      title 'subscription created'
+    }
+    billing_service -> billing_db {
+      title 'Update Stripe ID'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Link Stripe Subscription
+      - subscriptionId: sub_123
+      - stripeSubscriptionId: sub_stripe_789
+      '''
+    }
+    billing_service -> api_gateway {
+      title 'subscription created'
+    }
+    api_gateway -> web_app {
+      title 'subscription active'
+    }
+    web_app -> viewer {
+      title 'Premium Activated'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Subscription Confirmation
+      - status: active
+      - plan: Premium Monthly
+      - nextBillingDate: 2024-02-15
+      - benefits: [no_ads, offline, youtube_music]
+      '''
+    }
+  }
+
+  dynamic view payout-flow {
+    title 'Creator Payout Flow'
+    description 'How a creator withdraws earnings from monetization'
+
+    creator -> web_app {
+      title 'Request Payout'
+      technology 'HTTPS'
+      notes '''
+      ### Withdraw Earnings
+      - amount: 5000
+      - currency: RUB
+      - payoutMethodId: bank_account_1
+      - channelId: UC_123
+      '''
+    }
+    web_app -> api_gateway {
+      title 'POST /billing/payouts'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Create Payout Request
+      **Request:**
+      - channelId
+      - amount: 5000
+      - currency: RUB
+      - payoutMethodId
+
+      **Response:**
+      - payoutId: payout_456
+      - status: pending
+      - estimatedArrival: 2024-01-25
+      '''
+    }
+    api_gateway -> billing_service {
+      title 'CreatePayout'
+      technology 'gRPC'
+      notes '''
+      ### Create Payout
+      **Request:**
+      - channelId: UC_123
+      - amount: 5000
+      - currency: RUB
+      - payoutMethodId: bank_account_1
+
+      **Response:**
+      - payoutId: payout_456
+      - status: processing
+      '''
+    }
+    billing_service -> billing_db {
+      title 'Insert PayoutRecord'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Store Payout Request
+      - id: payout_456
+      - channelId: UC_123
+      - amount: 5000
+      - currency: RUB
+      - status: processing
+      - payoutMethodId: bank_account_1
+      - createdAt: 2024-01-15T10:00:00Z
+      '''
+    }
+    billing_service -> monetization_service {
+      title 'Validate Earnings'
+      technology 'gRPC'
+      notes '''
+      ### Check Available Earnings
+      **Request:**
+      - channelId: UC_123
+      - amount: 5000
+
+      **Response:**
+      - availableEarnings: 12000
+      - pendingEarnings: 3000
+      - canWithdraw: true
+      '''
+    }
+    monetization_service -> billing_service {
+      title 'earnings validated'
+    }
+    billing_service -> billing_db {
+      title 'Reserve Earnings'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Lock Funds
+      - channelId: UC_123
+      - amount: 5000
+      - status: reserved
+      '''
+    }
+    billing_service -> yandex_money_service {
+      title 'Transfer to Wallet'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Yandex.Money Transfer
+      **Request:**
+      - amount: 5000
+      - currency: RUB
+      - recipient: wallet_789
+      - description: Creator payout UC_123
+
+      **Response:**
+      - transactionId: txn_abc123
+      - status: completed
+      '''
+    }
+    yandex_money_service -> billing_service {
+      title 'transfer complete'
+    }
+    billing_service -> billing_db {
+      title 'Update Payout Status'
+      technology 'gRPC / Spanner'
+      notes '''
+      ### Mark as Paid
+      - id: payout_456
+      - status: paid
+      - transactionId: txn_abc123
+      - paidAt: 2024-01-15T10:05:00Z
+      '''
+    }
+    billing_service -> api_gateway {
+      title 'payout processed'
+    }
+    api_gateway -> web_app {
+      title 'payout complete'
+    }
+    web_app -> creator {
+      title 'Payout Confirmation'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Payout Successful
+      - payoutId: payout_456
+      - amount: 5000 RUB
+      - status: completed
+      - transactionId: txn_abc123
+      - receivedAt: 2024-01-15T10:05:00Z
+      '''
+    }
+  }
+}

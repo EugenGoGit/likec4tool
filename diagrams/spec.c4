@@ -1,0 +1,17 @@
+specification {
+  element actor
+  element system
+  element system_web
+  element system_mobile
+  element component
+  element queue {
+    title 'Kafka'
+    technology 'Kafka topic'
+    style { shape queue }
+  }
+  element storage {
+    title 'Storage'
+    style { shape storage }
+  }
+  element microservice
+}

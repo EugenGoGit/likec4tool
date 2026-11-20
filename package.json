@@ -1,0 +1,10 @@
+{
+  "name": "likec4-landscape",
+  "version": "1.0.0",
+  "description": "C4 architecture diagrams for likec4landscape",
+  "scripts": {
+    "lint:c4": "python scripts/c4-lint.py diagrams/",
+    "lint": "npx likec4 validate diagrams/ && python scripts/c4-lint.py diagrams/",
+    "lint:strict": "python scripts/c4-lint.py diagrams/ --strict"
+  }
+}

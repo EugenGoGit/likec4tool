@@ -1,0 +1,1103 @@
+model {
+  user = actor 'Instagram User'
+  admin = actor 'Admin'
+
+  instagram = system {
+    title 'Instagram'
+    description 'Social media platform for photos, videos, and stories'
+    web_app = component {
+      title 'Web App'
+      technology 'React'
+      style { shape browser }
+    }
+    ios_app = component {
+      title 'iOS App'
+      technology 'Swift'
+      style { shape mobile }
+    }
+    android_app = component {
+      title 'Android App'
+      technology 'Kotlin'
+      style { shape mobile }
+    }
+
+    api_gateway = component {
+      title 'API Gateway'
+      technology 'gRPC / REST'
+    }
+    user_service = component {
+      title 'User Service'
+      technology 'Java'
+    }
+    post_service = component {
+      title 'Post Service'
+      technology 'Go'
+    }
+    media_service = component {
+      title 'Media Service'
+      technology 'Go'
+    }
+    feed_service = component {
+      title 'Feed Service'
+      technology 'Python'
+    }
+    notification_service = component {
+      title 'Notification Service'
+      technology 'Java'
+    }
+    search_service = component {
+      title 'Search Service'
+      technology 'Go'
+    }
+    story_service = component {
+      title 'Story Service'
+      technology 'Go'
+    }
+    reels_service = component {
+      title 'Reels Service'
+      technology 'Go'
+    }
+    comment_service = component {
+      title 'Comment Service'
+      technology 'Java'
+    }
+    like_service = component {
+      title 'Like Service'
+      technology 'Java'
+    }
+    follow_service = component {
+      title 'Follow Service'
+      technology 'Java'
+    }
+
+    instagram_events_queue = queue {
+      technology 'Kafka'
+    }
+
+    instagram_media_storage = storage {
+      title 'Media Storage'
+      technology 'Amazon S3 / GCS'
+    }
+    instagram_user_db = storage {
+      title 'User DB'
+      technology 'PostgreSQL'
+    }
+    instagram_post_db = storage {
+      title 'Post DB'
+      technology 'PostgreSQL'
+    }
+    instagram_graph_db = storage {
+      title 'Social Graph DB'
+      technology 'MongoDB'
+    }
+    instagram_cache = storage {
+      title 'Cache Layer'
+      technology 'Redis'
+    }
+    instagram_search_index = storage {
+      title 'Search Index'
+      technology 'Elasticsearch'
+    }
+  }
+
+  instagram_cdn = system {
+    title 'CDN'
+    description 'Content delivery network for media assets'
+  }
+  instagram_oauth = system {
+    title 'OAuth 2.0 / JWT'
+    description 'Authentication service'
+  }
+  instagram_push_notifications = system {
+    title 'Push Notifications'
+    description 'Firebase Cloud Messaging / APNs'
+  }
+  instagram_email_service = system {
+    title 'Email Service'
+    description 'Transactional and notification emails'
+  }
+  instagram_payment_service = system {
+    title 'Payment Service'
+    description 'Stripe / payment processing'
+  }
+  moderation_api_service = system {
+    title 'Content Moderation API'
+    description 'AI-based content analysis'
+  }
+
+  user -> web_app {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get feed
+    - GET /posts/{id} — get post
+    - POST /posts — create post
+    - GET /search — search
+    '''
+  }
+  user -> ios_app {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get feed
+    - POST /posts — create post
+    - GET /stories — view stories
+    '''
+  }
+  user -> android_app {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get feed
+    - POST /posts — create post
+    - GET /reels — view reels
+    '''
+  }
+
+  web_app -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get personalized feed
+    - POST /posts — create post
+    - POST /stories — create story
+    - GET /search — search users and content
+    '''
+  }
+  ios_app -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get personalized feed
+    - POST /posts — create post
+    - POST /stories — create story
+    - POST /reels — create reel
+    '''
+  }
+  android_app -> api_gateway {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /feed — get personalized feed
+    - POST /posts — create post
+    - POST /reels — create reel
+    - GET /stories — view stories
+    '''
+  }
+
+  api_gateway -> user_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - GetUserProfile, UpdateProfile, FollowUser, UnfollowUser, ListFollowers, ListFollowing
+    - BlockUser, UnblockUser, GetBlockedUsers
+
+    ### DTO
+    - UserRequest { userId, email }
+    - UserProfileResponse { id, username, displayName, bio, avatarUrl, followersCount, followingCount, isPrivate }
+    - AuthToken { accessToken, refreshToken }
+    '''
+  }
+  api_gateway -> post_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - CreatePost, GetPost, ListPosts, DeletePost, GetPostLikes, GetPostComments
+
+    ### DTO
+    - PostRequest { userId, caption, mediaIds: [string] }
+    - PostResponse { id, userId, caption, mediaUrls: [string], likesCount, commentsCount, createdAt }
+    '''
+  }
+  api_gateway -> media_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - UploadMedia, GetMedia, DeleteMedia, GetMediaThumbnail
+
+    ### DTO
+    - MediaRequest { userId, contentType, fileSize }
+    - MediaResponse { id, url, thumbnailUrl, contentType, width, height, duration }
+    - UploadSession { sessionId, uploadUrl, expiresIn }
+    '''
+  }
+  api_gateway -> feed_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - GetFeed, GetFeedPage, GetExploreFeed
+
+    ### DTO
+    - FeedRequest { userId, cursor, count }
+    - FeedResponse { posts: [PostSummary], nextCursor }
+    - PostSummary { id, userId, caption, thumbnailUrl, likesCount, commentsCount, createdAt }
+    '''
+  }
+  api_gateway -> notification_service {
+    title 'gRPC / Async'
+    technology 'gRPC + Kafka'
+    description '''
+    ### gRPC API
+    - GetNotifications, MarkAsRead, ListUnreadCount
+
+    ### DTO
+    - NotificationRequest { userId, cursor, count }
+    - NotificationResponse { id, type, fromUserId, postId?, title, body, createdAt, read }
+    '''
+  }
+  api_gateway -> search_service {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### REST API Endpoints
+    - GET /search?q={query}&type={user|post|tag}
+
+    ### DTO
+    - SearchRequest { query, type: user|post|tag, page, pageSize }
+    - SearchResponse { results: [SearchResult], totalHits, nextPageToken }
+    '''
+  }
+  api_gateway -> story_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - CreateStory, GetStory, GetStories, DeleteStory, ViewStory
+
+    ### DTO
+    - StoryRequest { userId, mediaIds: [string], expiresAt }
+    - StoryResponse { id, userId, mediaUrls: [string], viewedBy: [userId], createdAt, expiresAt }
+    '''
+  }
+  api_gateway -> reels_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - CreateReel, GetReel, GetReelsFeed, GetExploreReels
+
+    ### DTO
+    - ReelRequest { userId, caption, mediaId }
+    - ReelResponse { id, userId, caption, videoUrl, thumbnailUrl, likesCount, commentsCount, createdAt }
+    '''
+  }
+  api_gateway -> comment_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - AddComment, GetComments, DeleteComment, LikeComment, ReplyComment
+
+    ### DTO
+    - CommentRequest { postId, userId, text, parentId? }
+    - CommentResponse { id, text, author, likes, replies: [CommentResponse], createdAt }
+    '''
+  }
+  api_gateway -> like_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - LikePost, UnlikePost, LikeComment, UnlikeComment, GetUserLikes
+
+    ### DTO
+    - LikeRequest { userId, targetType: post|comment, targetId }
+    - LikeResponse { liked, likesCount }
+    '''
+  }
+  api_gateway -> follow_service {
+    title 'gRPC'
+    technology 'gRPC + Protobuf'
+    description '''
+    ### gRPC API
+    - Follow, Unfollow, GetFollowers, GetFollowing, IsFollowing
+
+    ### DTO
+    - FollowRequest { followerId, followingId }
+    - FollowResponse { following, followersCount, followingCount }
+    '''
+  }
+
+  post_service -> media_service {
+    title 'Internal RPC'
+    technology 'gRPC'
+    description '''
+    ### References media in post creation
+
+    ### DTO
+    - PostWithMedia { caption, mediaIds: [mediaId], userId }
+    '''
+  }
+  media_service -> instagram_media_storage {
+    title 'S3 / GCS API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Uploads and retrieves media files
+
+    ### DTO
+    - MediaUpload { bucket, objectKey, contentType, metadata }
+    '''
+  }
+  media_service -> instagram_cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches media URLs and metadata
+
+    ### DTO
+    - CacheEntry { key: media:{id}:url, value: string, ttl: 86400 }
+    '''
+  }
+  user_service -> instagram_user_db {
+    title 'JDBC / Hibernate'
+    technology 'PostgreSQL Client'
+    description '''
+    ### Reads/writes user profiles and auth data
+
+    ### DTO
+    - UserRecord { id, username, email, displayName, bio, avatarUrl, isPrivate, createdAt }
+    '''
+  }
+  user_service -> instagram_cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches user profiles and sessions
+
+    ### DTO
+    - Session { sessionId, userId, token, expiresAt }
+    - CachedUser { key: user:{id}, value: UserProfileResponse, ttl: 300 }
+    '''
+  }
+  post_service -> instagram_post_db {
+    title 'JDBC / Hibernate'
+    technology 'PostgreSQL Client'
+    description '''
+    ### Reads/writes post metadata
+
+    ### DTO
+    - PostRecord { id, userId, caption, createdAt, updatedAt, visibility }
+    '''
+  }
+  feed_service -> instagram_graph_db {
+    title 'MongoDB Driver'
+    technology 'MongoDB Protocol'
+    description '''
+    ### Reads social graph for feed generation
+
+    ### DTO
+    - SocialGraph { userId, following: [userId], followers: [userId] }
+    '''
+  }
+  feed_service -> instagram_cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches feed entries
+
+    ### DTO
+    - CacheEntry { key: feed:{userId}, value: [PostSummary], ttl: 300 }
+    '''
+  }
+  feed_service -> instagram_events_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Publishes feed events for real-time updates
+
+    ### DTO
+    - FeedEvent { userId, eventType: new_post|new_story, postId?, storyId?, timestamp }
+    '''
+  }
+  instagram_events_queue -> notification_service {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Consumes events to trigger notifications
+
+    ### DTO
+    - NotificationEvent { userId, type: like|comment|follow|mention, sourceUserId, postId?, createdAt }
+    '''
+  }
+  story_service -> instagram_graph_db {
+    title 'MongoDB Driver'
+    technology 'MongoDB Protocol'
+    description '''
+    ### Reads user's following list for story feed
+
+    ### DTO
+    - StoryFeedRequest { userId, followingList: [userId] }
+    '''
+  }
+  story_service -> instagram_media_storage {
+    title 'S3 / GCS API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Uploads story media
+
+    ### DTO
+    - StoryMedia { bucket, objectKey, contentType, expiresAt }
+    '''
+  }
+  reels_service -> instagram_media_storage {
+    title 'S3 / GCS API'
+    technology 'HTTPS / REST'
+    description '''
+    ### Uploads reel video
+
+    ### DTO
+    - ReelMedia { bucket, objectKey, contentType, duration }
+    '''
+  }
+  search_service -> instagram_search_index {
+    title 'Elasticsearch REST API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Searches users, posts, and tags
+
+    ### DTO
+    - SearchQuery { query, type: user|post|tag, filters }
+    - SearchResults { hits: [SearchHit], total, took }
+    '''
+  }
+  search_service -> instagram_cache {
+    title 'Redis'
+    technology 'RESP / Redis Protocol'
+    description '''
+    ### Caches search results
+
+    ### DTO
+    - CacheEntry { key: search:{query}:{type}, value: [SearchHit], ttl: 600 }
+    '''
+  }
+  notification_service -> instagram_push_notifications {
+    title 'FCM / APNs API'
+    technology 'HTTPS'
+    description '''
+    ### Sends push notifications
+
+    ### DTO
+    - PushRequest { token, title, body, data: {postId?, type?} }
+    '''
+  }
+  notification_service -> instagram_email_service {
+    title 'SMTP / API'
+    technology 'HTTPS / JSON'
+    description '''
+    ### Sends email notifications
+
+    ### DTO
+    - EmailRequest { to, subject, body, template }
+    '''
+  }
+  comment_service -> instagram_post_db {
+    title 'JDBC / Hibernate'
+    technology 'PostgreSQL Client'
+    description '''
+    ### Reads/writes comments
+
+    ### DTO
+    - CommentRecord { id, postId, userId, text, parentId, createdAt, likes }
+    '''
+  }
+  like_service -> instagram_post_db {
+    title 'JDBC / Hibernate'
+    technology 'PostgreSQL Client'
+    description '''
+    ### Reads/writes likes
+
+    ### DTO
+    - LikeRecord { id, userId, targetType, targetId, createdAt }
+    '''
+  }
+  follow_service -> instagram_graph_db {
+    title 'MongoDB Driver'
+    technology 'MongoDB Protocol'
+    description '''
+    ### Reads/writes follow relationships
+
+    ### DTO
+    - FollowRecord { followerId, followingId, createdAt }
+    '''
+  }
+  moderation_api_service -> media_service {
+    title 'Internal RPC'
+    technology 'gRPC'
+    description '''
+    ### Triggers content moderation on upload
+
+    ### DTO
+    - ModerationRequest { mediaId, userId, type: image|video }
+    - ModerationResponse { approved, flags: [nsfw|violence|hate], confidence }
+    '''
+  }
+  user_service -> instagram_oauth {
+    title 'OAuth 2.0 / OIDC'
+    technology 'HTTPS / JWT'
+    description '''
+    ### Validates access tokens
+
+    ### DTO
+    - TokenValidation { accessToken, grantType: bearer }
+    - TokenResponse { valid, userId, scopes }
+    '''
+  }
+  post_service -> instagram_events_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Publishes post creation events
+
+    ### DTO
+    - PostCreatedEvent { postId, userId, caption, mediaCount, createdAt }
+    '''
+  }
+  like_service -> instagram_events_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Publishes like events for real-time updates
+
+    ### DTO
+    - LikeEvent { postId, userId, eventType: like|unlike, timestamp }
+    '''
+  }
+  comment_service -> instagram_events_queue {
+    title 'Kafka'
+    technology 'Kafka + Protobuf'
+    description '''
+    ### Publishes comment events
+
+    ### DTO
+    - CommentEvent { postId, userId, commentId, eventType: new|like, timestamp }
+    '''
+  }
+
+  user -> instagram_cdn {
+    title 'HTTP / HTTPS'
+    technology 'HTTP / HTTPS'
+    description '''
+    ### Fetches media assets (images, videos, thumbnails)
+
+    ### DTO
+    - MediaAsset { url, etag, cacheControl: max-age=86400 }
+    '''
+  }
+  admin -> web_app {
+    title 'HTTPS / REST'
+    technology 'HTTPS + JSON'
+    description '''
+    ### Admin Dashboard
+    - GET /admin/users — list users
+    - GET /admin/posts — list posts
+    - PUT /admin/posts/{id}/moderate — moderate post
+    - GET /admin/analytics — platform analytics
+    '''
+  }
+}
+
+views {
+  view instagram-index {
+    title 'Instagram Service Architecture'
+    description 'High-level architecture of the Instagram social media platform'
+
+    include user, admin, instagram
+  }
+
+  view instagram-internal {
+    title 'Instagram Internal Components'
+    description 'Detailed internal architecture of Instagram services'
+
+    include instagram.*
+  }
+
+  dynamic view instagram-post-creation-flow {
+    title 'Post Creation Flow'
+    description 'Sequence diagram of post creation and publishing'
+
+    user -> ios_app {
+      title 'Select Photos'
+      technology 'HTTPS / Multipart'
+      notes '''
+      ### Choose media from gallery
+      - photos: [file1.jpg, file2.jpg]
+      - caption: "Beautiful sunset"
+      '''
+    }
+    ios_app -> api_gateway {
+      title 'POST /posts'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Create Post Request
+      **Request:**
+      - userId
+      - caption
+      - mediaIds: [mediaId1, mediaId2]
+
+      **Response:**
+      - postId
+      - status: published
+      - createdAt
+      '''
+    }
+    api_gateway -> user_service {
+      title 'Validate User'
+      technology 'gRPC'
+      notes '''
+      ### Verify Authentication
+      **Request:**
+      - token: Bearer <JWT>
+
+      **Response:**
+      - userId
+      - username
+      - accountStatus: active
+      '''
+    }
+    user_service -> instagram_oauth {
+      title 'Validate Token'
+      technology 'HTTPS / JWT'
+      notes '''
+      ### Validate JWT Token
+      **Request:**
+      - accessToken
+
+      **Response:**
+      - valid: true
+      - userId
+      - scopes
+      '''
+    }
+    instagram_oauth -> user_service {
+      title 'Token Valid'
+      technology 'HTTPS / JWT'
+      notes '''
+      ### Token Validation Response
+      - accessToken: valid
+      - userId
+      - scopes
+      '''
+    }
+    user_service -> api_gateway {
+      title 'Authenticated'
+      technology 'gRPC'
+      notes '''
+      ### Authentication Response
+      - userId
+      - username
+      - accountStatus: active
+      '''
+    }
+    api_gateway -> post_service {
+      title 'CreatePost'
+      technology 'gRPC'
+      notes '''
+      ### Create Post Record
+      **Request:**
+      - userId
+      - caption
+      - mediaIds: [mediaId1, mediaId2]
+
+      **Response:**
+      - postId
+      - status: published
+      '''
+    }
+    post_service -> instagram_post_db {
+      title 'Insert PostRecord'
+      technology 'PostgreSQL'
+      notes '''
+      ### Store Post Metadata
+      - id: post_123
+      - userId: user_456
+      - caption: "Beautiful sunset"
+      - createdAt: 2024-01-15T10:00:00Z
+      '''
+    }
+    post_service -> media_service {
+      title 'Validate Media'
+      technology 'gRPC'
+      notes '''
+      ### Verify Media Exists
+      - mediaIds: [mediaId1, mediaId2]
+      '''
+    }
+    media_service -> instagram_media_storage {
+      title 'Get Media URLs'
+      technology 'S3 / GCS API'
+      notes '''
+      ### Retrieve Media from Storage
+      - bucket: instagram-media
+      - objectKeys: [post_123/media1.jpg, post_123/media2.jpg]
+      '''
+    }
+    media_service -> post_service {
+      title 'Media Validated'
+      technology 'gRPC'
+      notes '''
+      ### Media Validation Response
+      - mediaIds: [mediaId1, mediaId2]
+      - status: valid
+      '''
+    }
+    post_service -> instagram_events_queue {
+      title 'Publish PostCreatedEvent'
+      technology 'Kafka'
+      notes '''
+      ### Notify Followers
+      - postId: post_123
+      - userId: user_456
+      - eventType: new_post
+      '''
+    }
+    instagram_events_queue -> feed_service {
+      title 'Consume Event'
+      technology 'Kafka'
+      notes '''
+      ### Feed Event Consumption
+      - eventType: new_post
+      - postId
+      - userId
+      '''
+    }
+    instagram_events_queue -> notification_service {
+      title 'Consume Event'
+      technology 'Kafka'
+      notes '''
+      ### Notification Event Consumption
+      - eventType: new_post
+      - postId
+      - userId
+      '''
+    }
+    notification_service -> instagram_push_notifications {
+      title 'Send Push Notifications'
+      technology 'FCM / APNs'
+      notes '''
+      ### Notify Followers
+      - tokens: [token1, token2, ...]
+      - title: "New post from user_456"
+      - body: "Beautiful sunset"
+      '''
+    }
+    feed_service -> instagram_cache {
+      title 'Update Feed Cache'
+      technology 'Redis'
+      notes '''
+      ### Add to Followers' Feeds
+      - key: feed:{followerId}
+      - action: prepend PostSummary
+      - ttl: 300
+      '''
+    }
+    ios_app -> user {
+      title 'Post Published'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Post Created Confirmation
+      - postId: post_123
+      - status: published
+      - likesCount: 0
+      - commentsCount: 0
+      '''
+    }
+  }
+
+  dynamic view instagram-feed-personalization-flow {
+    title 'Feed Personalization Flow'
+    description 'How Instagram personalizes the feed for a user'
+
+    user -> ios_app {
+      title 'Open App'
+      technology 'HTTPS'
+      notes '''
+      ### Home Screen Request
+      - userId
+      - lastRefreshTime
+      - deviceType: ios
+      '''
+    }
+    ios_app -> api_gateway {
+      title 'GET /feed'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Request Feed
+      **Request:**
+      - userId
+      - cursor?
+      - count: 20
+
+      **Response:**
+      - posts: [PostSummary]
+      - nextCursor
+      '''
+    }
+    api_gateway -> user_service {
+      title 'GetUserProfile'
+      technology 'gRPC'
+      notes '''
+      ### Verify User and Get Preferences
+      **Request:**
+      - userId
+
+      **Response:**
+      - userId
+      - isPrivate: false
+      - preferences
+      '''
+    }
+    api_gateway -> feed_service {
+      title 'GetFeed'
+      technology 'gRPC'
+      notes '''
+      ### Fetch Personalized Feed
+      **Request:**
+      - userId
+      - count: 20
+      - cursor?
+
+      **Response:**
+      - posts: [RankedPost]
+      - nextCursor
+      '''
+    }
+    feed_service -> instagram_cache {
+      title 'Check Feed Cache'
+      technology 'Redis'
+      notes '''
+      ### Try Cached Feed
+      - key: feed:{userId}
+      - result: HIT or MISS
+      '''
+    }
+    feed_service -> instagram_graph_db {
+      title 'Get Following List'
+      technology 'MongoDB'
+      notes '''
+      ### Fetch User's Following
+      - userId
+      - following: [user1, user2, ...]
+      '''
+    }
+    feed_service -> instagram_post_db {
+      title 'Fetch Recent Posts'
+      technology 'PostgreSQL'
+      notes '''
+      ### Get Posts from Following
+      - userIds: [following list]
+      - limit: 100
+      - orderBy: createdAt DESC
+      '''
+    }
+    instagram_post_db -> feed_service {
+      title 'Posts Retrieved'
+      technology 'PostgreSQL'
+      notes '''
+      ### Feed Service Response
+      - posts: [PostRecord]
+      - count: 100
+      '''
+    }
+    feed_service -> feed_service {
+      title 'Rank Posts'
+      technology 'Internal'
+      notes '''
+      ### Score and Rank Posts
+      - Factors: recency, engagement, relationship strength
+      - Algorithm: weighted scoring
+      '''
+    }
+    feed_service -> instagram_cache {
+      title 'Cache Feed Results'
+      technology 'Redis'
+      notes '''
+      ### Store for Future Requests
+      - key: feed:{userId}
+      - value: [RankedPost]
+      - ttl: 300
+      '''
+    }
+    feed_service -> api_gateway {
+      title 'Feed Ready'
+      technology 'gRPC'
+      notes '''
+      ### Feed Response
+      - posts: [RankedPost]
+      - nextCursor
+      '''
+    }
+    api_gateway -> ios_app {
+      title 'Feed Data'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Feed Response
+      - posts: [PostSummary]
+      - nextCursor
+      '''
+    }
+    ios_app -> user {
+      title 'Display Feed'
+      technology 'Swift / UI'
+      notes '''
+      ### Render Feed Cards
+      - postId
+      - authorAvatar
+      - caption
+      - thumbnailUrl
+      - likesCount
+      - commentsCount
+      - timeAgo
+      '''
+    }
+  }
+
+  dynamic view instagram-notification-flow {
+    title 'Notification Flow'
+    description 'How notifications are generated and delivered to users'
+
+    user -> ios_app {
+      title 'Like a Post'
+      technology 'HTTPS'
+      notes '''
+      ### Tap Like Button
+      - postId: post_123
+      - userId: user_456
+      '''
+    }
+    ios_app -> api_gateway {
+      title 'POST /posts/{id}/like'
+      technology 'HTTPS / JSON'
+      notes '''
+      ### Like Request
+      **Request:**
+      - userId
+      - postId
+
+      **Response:**
+      - liked: true
+      - likesCount: 42
+      '''
+    }
+    api_gateway -> like_service {
+      title 'LikePost'
+      technology 'gRPC'
+      notes '''
+      ### Record Like
+      **Request:**
+      - userId: user_456
+      - targetType: post
+      - targetId: post_123
+
+      **Response:**
+      - liked: true
+      - likesCount: 42
+      '''
+    }
+    like_service -> instagram_post_db {
+      title 'Insert LikeRecord'
+      technology 'PostgreSQL'
+      notes '''
+      ### Store Like
+      - userId: user_456
+      - targetType: post
+      - targetId: post_123
+      - createdAt: 2024-01-15T10:05:00Z
+      '''
+    }
+    like_service -> instagram_events_queue {
+      title 'Publish LikeEvent'
+      technology 'Kafka'
+      notes '''
+      ### Notify System of Like
+      - postId: post_123
+      - userId: user_456
+      - eventType: like
+      - timestamp: 2024-01-15T10:05:00Z
+      '''
+    }
+    instagram_events_queue -> notification_service {
+      title 'Consume Event'
+      technology 'Kafka'
+      notes '''
+      ### Notification Event Consumption
+      - eventType: like
+      - postId
+      - sourceUserId: user_456
+      '''
+    }
+    notification_service -> instagram_graph_db {
+      title 'Get Post Author'
+      technology 'MongoDB'
+      notes '''
+      ### Find Post Owner
+      - postId: post_123
+      - result: userId: user_789
+      '''
+    }
+    instagram_graph_db -> notification_service {
+      title 'Author Response'
+      technology 'MongoDB'
+      notes '''
+      ### Post Author
+      - userId: user_789
+      '''
+    }
+    notification_service -> notification_service {
+      title 'Create Notification'
+      technology 'Internal'
+      notes '''
+      ### Build Notification
+      - type: like
+      - toUserId: user_789
+      - fromUserId: user_456
+      - postId: post_123
+      - title: "user_456 liked your post"
+      '''
+    }
+    notification_service -> instagram_user_db {
+      title 'Insert Notification'
+      technology 'PostgreSQL'
+      notes '''
+      ### Store Notification
+      - toUserId: user_789
+      - type: like
+      - fromUserId: user_456
+      - postId: post_123
+      - createdAt: 2024-01-15T10:05:00Z
+      - read: false
+      '''
+    }
+    notification_service -> instagram_push_notifications {
+      title 'Send Push'
+      technology 'FCM / APNs'
+      notes '''
+      ### Push to Device
+      - token: user_789_device_token
+      - title: "New like"
+      - body: "user_456 liked your post"
+      '''
+    }
+    ios_app -> user {
+      title 'Notification Received'
+      technology 'Push Notification'
+      notes '''
+      ### Display Notification
+      - title: "New like"
+      - body: "user_456 liked your post"
+      - postId: post_123
+      '''
+    }
+  }
+}
+
+
